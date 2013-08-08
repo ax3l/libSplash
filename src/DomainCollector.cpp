@@ -17,8 +17,8 @@
  * You should have received a copy of the GNU General Public License 
  * and the GNU Lesser General Public License along with libSplash. 
  * If not, see <http://www.gnu.org/licenses/>. 
- */ 
- 
+ */
+
 
 
 #include <algorithm>
@@ -144,7 +144,7 @@ namespace DCollector
         Domain domain(offset, total_size - offset);
         return domain;
     }
-    
+
     bool DomainCollector::readDomainInfoForRank(
             Dimensions mpiPosition,
             int32_t id,
@@ -160,7 +160,7 @@ namespace DCollector
 
         readAttribute(id, name, DOMCOL_ATTR_SIZE,
                 fileDomain.getSize().getPointer(), &mpiPosition);
-        
+
         return testIntersection(request_domain, fileDomain);
     }
 
@@ -430,7 +430,7 @@ namespace DCollector
     {
         if ((fileStatus != FST_MERGING) && (fileStatus != FST_READING))
             throw DCException("DomainCollector::readDomain: this access is not permitted");
-        
+
         DataContainer *data_container = new DataContainer();
 
 #if (DC_DEBUG == 1)
@@ -439,101 +439,16 @@ namespace DCollector
 #endif
 
         DomDataClass data_class = UndefinedType;
-        Dimensions mpi_size;
+        Dimensions mpi_position(0, 0, 0);
 
-        if (fileStatus == FST_MERGING)
-        {
-            mpi_size.set(mpiSize);
-        } else
-            mpi_size.set(1, 1, 1);
-
-        Dimensions min_rank(0, 0, 0);
-        Dimensions max_rank(mpiSize);
-        max_rank = max_rank - Dimensions(1, 1, 1);
-        Dimensions current_mpi_pos(0, 0, 0);
-        Dimensions point_dim(1, 1, 1);
-
-        // try to find top-left corner of requested domain
-        // stop if no new file can be tested for the requested domain
-        Dimensions last_mpi_pos(current_mpi_pos);
-        bool found_start = false;
-        do
-        {
-            Domain file_domain;
-            last_mpi_pos = current_mpi_pos;
-            
-            for (size_t i = 0; i < 3; ++i)
-            {
-                current_mpi_pos[i] = min_rank[i] + 
-                        ceil(((double)max_rank[i] - (double)min_rank[i]) / 2.0);
-            }
-            
-            if(readDomainInfoForRank(current_mpi_pos, id, name,
-                    requestOffset, point_dim, file_domain))
-            {
-                found_start = true;
-                break;
-            }
-            
-            for (size_t i = 0; i < 3; ++i)
-            {
-                if (requestOffset[i] >= file_domain.getStart()[i])
-                    min_rank[i] = current_mpi_pos[i];
-                
-                if (requestOffset[i] < file_domain.getStart()[i])
-                    max_rank[i] = current_mpi_pos[i] - 1;
-            }
-        } while (last_mpi_pos != current_mpi_pos);
-        
-        if (!found_start)
-            return data_container;
-        
-        // found top-left corner of requested domain
-        // In every file, domain attributes are read and evaluated.
-        // If the file domain and the requested domain intersect,
-        // the file domain is added to the DataContainer.
-        for (size_t i = 0; i < 3; ++i)
-            max_rank[i] = mpiSize[i] - 1;
-        
-        bool found_last_entry = false;
-        for (size_t z = current_mpi_pos[2]; z <= max_rank[2]; z++)
-        {
-            for (size_t y = current_mpi_pos[1]; y <= max_rank[1]; y++)
-            {
-                for (size_t x = current_mpi_pos[0]; x <= max_rank[0]; x++)
-                {
-                    Dimensions mpi_position(x, y, z);
-
-                    if (!readDomainDataForRank(data_container,
-                            &data_class,
-                            mpi_position,
-                            id,
-                            name,
-                            requestOffset,
-                            requestSize,
-                            lazyLoad))
-                    {
-                        if (z == 0)
-                        {
-                            if (y == 0)
-                                max_rank[0] = x;
-                            else
-                                max_rank[1] = y;
-                        } else
-                        {
-                            found_last_entry = true;
-                            break;
-                        }
-                    }
-                }
-                
-                if (found_last_entry)
-                    break;
-            }
-            
-            if (found_last_entry)
-                break;
-        }
+        readDomainDataForRank(data_container,
+                &data_class,
+                mpi_position,
+                id,
+                name,
+                requestOffset,
+                requestSize,
+                lazyLoad);
 
         if (dataClass != NULL)
             *dataClass = data_class;
