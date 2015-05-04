@@ -47,7 +47,11 @@ namespace splash
         DCDT_INT32,
         DCDT_INT64,
         DCDT_UINT32,
-        DCDT_UINT64
+        DCDT_UINT64/*,
+        DCDT_CHAR,
+        DCDT_BOOL,
+        DCDT_STRING,
+        DCDT_VLSTRING*/
     };
 
     /**

@@ -399,7 +399,15 @@ namespace splash
             else
                 if (type_size == sizeof (double))
                 result = DCDT_FLOAT64;
-        }
+        } /*else if (type_class == H5T_STRING)
+        {
+            // ...
+        }*/
+        // bool ? H5T_ENUM: H5Tenum_nameof, H5Tenum_valueof, H5Tget_member_value
+        // H5T_ARRAY H5T_COMPOUND H5T_VLEN: H5Tget_super
+        // H5T_ARRAY: H5Tget_array_ndims, H5Tget_array_dims
+        // H5T_COMPOUND: H5Tget_nmembers, H5Tget_member_type, ...
+        // other: H5T_OPAQUE H5T_REFERENCE H5T_BITFIELD
 
         return result;
     }

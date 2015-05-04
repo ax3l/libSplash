@@ -212,7 +212,15 @@ namespace splash
                     break;
                 case DCDT_INT64:
                     format_string << "ld";
+                    break;/*
+                case DCDT_CHAR:
+                    format_string << "c";
                     break;
+                case DCDT_BOOL:
+                    format_string << "d";
+                    break;
+                case DCDT_(VL)STRING:
+                    ... */
                 default:
                     throw DCException("cannot identify datatype");
             }
