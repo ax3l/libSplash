@@ -24,6 +24,7 @@
 
 #include "splash/core/DCDataSet.hpp"
 
+#include <iostream>
 
 namespace splash
 {
@@ -49,10 +50,49 @@ namespace splash
 
         virtual ~DCParallelDataSet()
         {
+            H5D_mpio_actual_chunk_opt_mode_t actual_chunk_opt_mode_write;
+            H5Pget_mpio_actual_chunk_opt_mode( dsetWriteProperties,
+                                               &actual_chunk_opt_mode_write );
+            switch( actual_chunk_opt_mode_write ) {
+                case H5D_MPIO_NO_CHUNK_OPTIMIZATION : std::cerr << "[CHUNK-OPT] NO OPTIMIZATION" << std::endl;
+                                                      break;
+                case H5D_MPIO_LINK_CHUNK : std::cerr << "[CHUNK-OPT] LINK" << std::endl;
+                                           break;
+                case H5D_MPIO_MULTI_CHUNK : std::cerr << "[CHUNK-OPT] MULTI" << std::endl;
+                                            break;
+                default : std::cerr << "[CHUNK-OPT] " << actual_chunk_opt_mode_write << std::endl;
+                          break;
+            }
+
+            H5D_mpio_actual_io_mode_t actual_io_mode_write;
+            H5Pget_mpio_actual_io_mode( dsetWriteProperties,
+                                        &actual_io_mode_write );
+
+            switch( actual_io_mode_write ) {
+                case H5D_MPIO_NO_COLLECTIVE : std::cerr << "[MODE] NO COLLECTIVE" << std::endl;
+                                              break;
+                case H5D_MPIO_CHUNK_INDEPENDENT : std::cerr << "[MODE] CHUNK INDEPENDENT" << std::endl;
+                                              break;
+                case H5D_MPIO_CHUNK_COLLECTIVE : std::cerr << "[MODE] CHUNK COLLECTIVE" << std::endl;
+                                           break;
+                case H5D_MPIO_CHUNK_MIXED : std::cerr << "[MODE] CHUNK MIXED" << std::endl;
+                                           break;
+                case H5D_MPIO_CONTIGUOUS_COLLECTIVE : std::cerr << "[MODE] CONTIGUOUS COLLECTIVE" << std::endl;
+                                           break;
+                default: std::cerr << "[MODE] " << actual_io_mode_write << std::endl;
+                         break;
+            }
+
+            H5D_mpio_actual_io_mode_t actual_io_mode_read;
+            H5Pget_mpio_actual_io_mode( dsetReadProperties,
+                                        &actual_io_mode_read);
+            // H5Pget_mpio_no_collective_cause( hid_t dxpl_id, uint32_t*
+            //   local_no_collective_cause, uint32_t* global_no_collective_cause);
+
             H5Pclose(dsetWriteProperties);
             H5Pclose(dsetReadProperties);
         }
-        
+
         void setWriteIndependent()
         {
             H5Pset_dxpl_mpio(dsetWriteProperties, H5FD_MPIO_INDEPENDENT);

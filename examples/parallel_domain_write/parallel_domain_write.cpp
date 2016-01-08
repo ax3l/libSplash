@@ -84,10 +84,12 @@ int main(int argc, char **argv)
     pdc.open(filename.c_str(), fAttr);
 
     /* create data for writing */
-    Dimensions localGridSize(10, 20, 5);
+    Dimensions localGridSize(440, 336, 608);
 
     ColTypeFloat ctFloat;
     float *data = new float[localGridSize.getScalarSize()];
+    if( data == NULL )
+        std::cerr << "Could not allocate memory!" << std::endl;
     memset(data, 1, sizeof(float) * localGridSize.getScalarSize());
 
     /* where our example logically starts */
